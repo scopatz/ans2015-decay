@@ -54,6 +54,8 @@ WI
 \newcommand{\vd}{\bm{\cdot}} % slightly bold vector dot
 \newcommand{\grad}{\vec{\nabla}} % gradient
 \newcommand{\ud}{\mathop{}\!\mathrm{d}} % upright derivative symbol
+\newcommand{\cyclus}{\textsc{Cyclus}\xspace}
+\newcommand{\Cyclus}{\cyclus}
 
 \begin{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -61,14 +63,39 @@ WI
 
 The Bateman equations governing radioactive decay are an important 
 subexpression of generalized transmutation equations. In many cases, it is 
-desirable to compute decay on its own, outside of the presence of an neutron 
+desirable to compute decay on its own, outside of the presence of a neutron 
 or photon field.  In this case radioactive decay is a function solely on 
 intrinsic physical parameters, namely half-lives. This document recasts the 
 Bateman equations into a form that is better suited for computation than the 
 traditional expression.
 
+This use case is particularly relevant to the study of the nuclear fuel 
+cycle (NFC). While reactors are a critical component of most NFCs, there 
+are many places in the cycle where fresh and used fuel is sitting outside 
+of a core. In these cases, decay alone is needed. Full transumation 
+calculations require excessive computational effort when simply trying to 
+model a storage facility. Thus, an efficient decay calculator has the 
+potential to speed up simulation of the entire NFC.
+
+Here, the traditional Bateman decay equations have been reformualted to 
+a expression that is more suited for binary compuation. Coupled with a 
+novel code generation technique, this binary formulation provides 
+dramatic speed increases in a modern computing environment. 
+
+Notably, all of the software implemented for the decay calculation is 
+available as part of the free \& open source PyNE library 
+\cite{pyne2014,Bates2014}. Furthermore, this decay functionality has
+been fully integrated into the \cyclus fuel cycle simulator
+\cite{cyclus2015,cyclus_v1.2}.
+
+This paper will start by reviewing the classic version of the Bateman 
+equations in \S II before providing the desired departure from 
+this form in \S III. Following this, implementation specific 
+approximations are discussed in \S IV.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Canonical Bateman Equations for Decay}
+\label{canon}
 The canonical expression of the Bateman equations for a decay chain 
 proceeding from a nuclide $A$ to a nuclide $Z$ at time 
 $t$ following a specific path is as follows \cite{Cetnar2006640}:
@@ -78,9 +105,8 @@ $t$ following a specific path is as follows \cite{Cetnar2006640}:
 N_C(t) = \frac{N_1(0)}{\lambda_C} \cdot \gamma \cdot \sum_{i=1}^C \lambda_i c_{i} e^{-\lambda_i t}
 \end{equation}
 
-The symbols in \ref{bm-eq} have the following meaning:
-
 \begin{table}[hbt]
+\label{decay-symbol-meaning}
 \caption{Symbol Meaning in Deacy Equations}
 \begin{tabular}{|l|l|}
 \hline
@@ -93,11 +119,12 @@ $t$         & time [seconds]\\
 $N_i(t)$    & number density of the ith species at time t\\
 $t_{1/2,i}$ & half-life of the ith species\\
 $\lambda_i$ & decay constant of ith species, $ln(2)/t_{1/2,i}$\\
-$\gamma$    & The total branch ratio for this chain\\
+$\gamma$    & total branch ratio for this chain\\
 \hline
 \end{tabular}
 \end{table}
 
+The symbols in \ref{bm-eq} have the meaning described in Table I.
 Additionally, $c_{i}$ is defined as:
 
 \begin{equation}
@@ -106,7 +133,7 @@ c_i = \prod_{j=1,i\ne j}^C \frac{\lambda_j}{\lambda_j - \lambda_i}
 \end{equation}
 
 Furthermore, the total chain branch ratio is defined as the product of the 
-branch ratio between any two species \cite{harr2007precise}:
+branch ratio between any two species in the chain \cite{harr2007precise}:
 
 \begin{equation}
 \label{gamma}
@@ -140,6 +167,7 @@ N_C(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C
 
 
 \section{Binary Reformulation of Bateman Equations}
+\label{bin}
 There are two main strategies can be used to construct a version of these 
 equations that is better suited to computation, if not clarity. 
 
@@ -178,17 +206,15 @@ In [1]: import numpy as np
 In [2]: r = np.random.random(1000) / np.random.random(1000)
 
 In [3]: \%timeit np.exp(r)
-10000 loops, best of 3: 26.6 µs per loop
+10000 loops, best of 3: 26.6 us per loop
 
 In [4]: \%timeit np.exp2(r)
-10000 loops, best of 3: 20.1 µs per loop
+10000 loops, best of 3: 20.1 us per loop
 \end{lstlisting}
 
 This is a savings of about 25\%.  Since the core of the Bateman equations are exponentials, 
 it is worthwhile to squeeze this algorithm as much as possible.  Luckily, the decay constant
 provides an intrinsic mechanism to convert to base-2:
-
-.. math::
 
 \begin{equation}
 \label{b2-0}
@@ -216,29 +242,28 @@ a_i = \frac{-1}{t_{1/2,i}}
 Thus, the final form of the binary representation of the Bateman equations are
 as follows:
 
-**General Formulation:** 
+\textbf{General Formulation:}
 
 \begin{equation}
 \label{nc_wakka}
 N_C(t) = N_1(0) \sum_{i=1}^C k_{i} 2^{a_i t}
 \end{equation}
 
-**First Nuclide in Chain:**
+\textbf{First Nuclide in Chain:}
 
 \begin{equation}
 \label{nc_jawakka}
 N_C(t) = N_1(0) \cdot 2^{a_1 t}
 \end{equation}
 
-**Stable Nuclide:**
+\textbf{Stable Nuclide:}
 
 \begin{equation}
 \label{nc_brown_shoes}
 N_C(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 2^{a_i t} \right]
 \end{equation}
 
-
-With completely precomputed $k$, $a$, and the $$exp2()$$ function, this 
+With completely precomputed $k$, $a$, and the $exp2()$ function, this 
 formulation minimizes the number of floating point operations while completely 
 preserving physics. No assumptions were made aside from the Bateman equations 
 themselves in this proof.
@@ -248,28 +273,31 @@ is because  $k$ and $a$ cannot be combined without adding further
 operations.
 
 \section{Implementation Specific Approximations}
+\label{approx}
 The above formulation holds generally for any decay chain.  However, certain 
 approximations are used in practice to reduce the number of chains and terms 
 that are calculated.
 
-1. Decay chains coming from spontaneous fission are not tallied as they 
-   lead to an explosion of the total number of chains while contributing to 
-   extraordinarily rare branches.
-2. Decay alphas are not treated as He-4 production.
-3. For chains longer than length 2, any 
-   term whose half-life is less than $10^{-8}$ of the sum of all 
-   half-lives in the chain is dropped. This filtering prevents excessive
-   calculation from species which do not significantly contribute to 
-   end atom fraction. The threshold $10^{-8}$ was chosen as 
-   because it is a reasonable naive estimate of floating point error after 
-   many operations. If the filtering causes there to be less than 
-   two terms in the summation, then the filtering is turned off and all
-   terms are computed.
-4. To prevent other sources of floating point error, a nuclide is determined 
-   to be stable when $\lambda_i < 10^{-16}$, rather than when 
-   $\lambda_i = 0.0$.
-5. If a chain has any $$NaN$$ decay constants, the chain in rejected.
-6. If a chain has any infinite $k$, the chain in rejected.
+\begin{enumerate}
+\item Decay chains coming from spontaneous fission are not tallied as they 
+    lead to an explosion of the total number of chains while contributing to 
+    extraordinarily rare branches.
+\item Decay alphas are not treated as He-4 production.
+\item For chains longer than length 2, any 
+    term whose half-life is less than $10^{-8}$ of the sum of all 
+    half-lives in the chain is dropped. This filtering prevents excessive
+    calculation from species which do not significantly contribute to 
+    end atom fraction. The threshold $10^{-8}$ was chosen as 
+    because it is a reasonable naive estimate of floating point error after 
+    many operations. If the filtering causes there to be less than 
+    two terms in the summation, then the filtering is turned off and all
+    terms are computed.
+\item To prevent other sources of floating point error, a nuclide is determined 
+    to be stable when $\lambda_i < 10^{-16}$, rather than when 
+    $\lambda_i = 0.0$.
+\item If a chain has any $$NaN$$ decay constants, the chain in rejected.
+\item If a chain has any infinite $k$, the chain in rejected.
+\end{enumerate}
 
 In principle, each of these statements is reasonable. However, they
 may preclude desired behavior by users. In such a situation, these 
