@@ -124,14 +124,12 @@ $\gamma$    & total branch ratio for this chain\\
 \end{tabular}
 \end{table}
 
-The symbols in \ref{bm-eq} have the meaning described in Table I.
+The symbols in Equation \ref{bm-eq} have the meaning described in Table I.
 Additionally, $c_{i}$ is defined as:
-
 \begin{equation}
 \label{c_i}
 c_i = \prod_{j=1,i\ne j}^C \frac{\lambda_j}{\lambda_j - \lambda_i}
 \end{equation}
-
 Furthermore, the total chain branch ratio is defined as the product of the 
 branch ratio between any two species in the chain \cite{harr2007precise}:
 
@@ -140,18 +138,19 @@ branch ratio between any two species in the chain \cite{harr2007precise}:
 \gamma = \prod_{i=i}^{C-1} \gamma_{i \to i+1}
 \end{equation}
 
-Minor modifications are needed for terminal species: the first nuclide of a 
-decay chain and the ending stable species. By setting $C=1$, the Bateman
-equations can be reduced to simply:
+Minor modifications are needed to Equation \ref{bm-eq} for terminal species: 
+the first nuclide of a decay chain and the ending stable species. By setting 
+$C=1$ for the first nuclide in a chain, the Bateman equations can be reduced 
+to simply:
 
 \begin{equation}
 \label{N_C}
 N_C(t) = N_1(0) e^{-\lambda_1 t}
 \end{equation}
 
-For stable species, the appropriate equation is derived by taking the limit
-of when the decay constant of the stable nuclide ($\lambda_C$) goes to 
-zero.  Also notice that every $c_i$ contains exactly one $\lambda_C$
+For stable species at the end of a chain, the appropriate equation is derived 
+by taking the limit of when the decay constant of the stable nuclide 
+($\lambda_C$) goes to zero.  Also notice that every $c_i$ contains exactly one $\lambda_C$
 in the numerator which cancels with the $\lambda_C$ in the denominator 
 in front of the summation:
 
@@ -165,6 +164,9 @@ in front of the summation:
 N_C(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C-1} \frac{\lambda_j}{\lambda_j - \lambda_i} \right) e^{-\lambda_i t} \right]
 \end{equation}
 
+Thus, Equations \ref{bm-eq}, \ref{N_C}, \& \ref{lim_lam_N_C} together are
+able to compute the concetration of any species under decay 
+at any point in time.
 
 \section{Binary Reformulation of Bateman Equations}
 \label{bin}
