@@ -1,2 +1,11 @@
-# ans2015-decay
-ANS 2015 Transaction - Decay
+ANS Transactions LaTeX template
+===============================
+
+
+Compiling
+----------------
+
+    pdflatex example
+    bibtex example
+    pdflatex example
+    pdflatex example
