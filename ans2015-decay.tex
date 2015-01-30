@@ -132,7 +132,7 @@ Additionally, $c_{i}$ is defined as:
 c_i = \prod_{j=1,i\ne j}^C \frac{\lambda_j}{\lambda_j - \lambda_i}
 \end{equation}
 Furthermore, the total chain branch ratio is defined as the product of the 
-branch ratio between any two species in the chain \cite{harr2007precise}:
+branch ratios between any two species in the chain \cite{harr2007precise}:
 
 \begin{equation}
 \label{gamma}
@@ -151,7 +151,7 @@ N_C(t) = N_1(0) e^{-\lambda_1 t}
 
 For stable species at the end of a chain, the appropriate equation is derived 
 by taking the limit of when the decay constant of the stable nuclide 
-($\lambda_C$) goes to zero.  Also, notice in Equation \ref{c_i} that every $c_i$ contains exactly one $\lambda_C$
+($\lambda_C$) goes to zero.  Notice that in Equation \ref{c_i} that every $c_i$ contains exactly one $\lambda_C$
 in the numerator which cancels with the $\lambda_C$ in the denominator 
 in front of the summation in Equation \ref{bm-eq}. This leads to the following form 
 for the calculation of the terminal species:
@@ -172,23 +172,23 @@ at any point in time.
 
 \section{Binary Reformulation of Bateman Equations}
 \label{bin}
-There are two main strategies that may be used to construct a version of these 
-equations that is better suited to computation, if not clarity. 
+There are two main strategies that may be used to construct a version of the 
+Bateman equations that is better suited to computation, if not clarity. 
 
 The first strategy is to minimize the number of arithmetic
 operations that must be performed to achieve the same result. 
-This can be done by grouping constants together and pre-calculating the single 
-resulting constant. This saves the 
+This can be done by grouping constants together and pre-calculating the 
+result as its own derived constant. This saves the 
 computer from having to perform these same arithmetic operations at run time.  
-Using these principles it is possible to express the Bateman equations as a simple sum of 
-exponentials, as seen in Equation \ref{N_C_bin}.
+By grouping constants, it is possible to express the Bateman equations as a 
+simple sum of exponentials, as seen in Equation \ref{N_C_bin}.
 
 \begin{equation}
 \label{N_C_bin}
 N_C(t) = N_1(0) \sum_{i=1}^C k_{i} e^{-\lambda_i t}
 \end{equation}
 
-In the above equation, the coefficients $k_i$ are defined as follows:
+In Equation \ref{N_C_bin}, the coefficients $k_i$ are defined as follows:
 
 \begin{equation}
 \label{k_i}
@@ -203,16 +203,16 @@ sum by $C$ to a total of $4C+1$, up from $3C+1$.
 However, when the $k_i$s  are pre-calculated, 
 the number of arithmetic operations for each term in the sum is a mere 4.
 It is no longer a function of the length of the chain $C$ at all.  This is 
-because explicitly computing $c_i$ has been completely avoided.
+because explicitly computing $c_i$ and $\gamma$ has been completely avoided.
 Note that even for the shortest non-stable species, this computation is 
 equivalently expensive as the normal Bateman equations, namely 4 operations.
 Thus even in the worst case, the binary formulation performs just as well.
 
-The second strategy is to note that computers are much better at dealing with 
-powers of 2 than any other base, even the natural base $e$. Thus the 
+The second strategy is to note is that computers are much better at dealing 
+with powers of 2 than any other base, even the natural base $e$. Thus the 
 $\mathrm{exp2}(x)$ function, or $2^x$, is faster than the natural exponential 
 function $\exp(x)$, $e^x$.  This is due to the number of floating point
-operations needed to in the implementation of the underlying exponential 
+operations performed in the implementation of the underlying exponential 
 functions. As proof of this principle, the following simple timing results
 demonstrate that $\mathrm{exp2}(x)$ is faster for random data:
 
@@ -285,7 +285,7 @@ N_C(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 
 With completely precomputed $k$, $a$, and the $\mathrm{exp2}()$ function, this 
 formulation reduces the number of arithmetic operations to 3 for each term 
 in the chain. Furthermore, it completely preserves all physical processes 
-because so assumptions were made aside from the Bateman equations themselves.
+because no assumptions were made aside from the Bateman equations themselves.
 Note that it is not possible to reduce the number of operations further
 without assuming a value for $t$. Thus this representation is the 
 mathematically fastest formulation of the Bateman equations.
