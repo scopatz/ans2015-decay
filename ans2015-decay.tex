@@ -79,7 +79,7 @@ model a storage facility. Thus, an efficient decay calculator has the
 potential to speed up simulation of the entire NFC.
 
 Here, the traditional Bateman decay equations have been reformulated to 
-a expression that is more suited for binary computation. Coupled with a 
+an expression that is more suited for binary computation. Coupled with a 
 novel code generation technique, this binary formulation provides 
 dramatic speed increases in a modern computing environment. 
 
@@ -142,7 +142,7 @@ branch ratio between any two species in the chain \cite{harr2007precise}:
 Minor modifications are needed to Equation \ref{bm-eq} for terminal species: 
 the first nuclide of a decay chain and the ending stable species. By setting 
 $C=1$ for the first nuclide in a chain, the Bateman equations can be reduced 
-to simply:
+to simply:%perhaps "the familiar" instead but it's also a bit colloquial
 
 \begin{equation}
 \label{N_C}
@@ -151,9 +151,10 @@ N_C(t) = N_1(0) e^{-\lambda_1 t}
 
 For stable species at the end of a chain, the appropriate equation is derived 
 by taking the limit of when the decay constant of the stable nuclide 
-($\lambda_C$) goes to zero.  Also notice that every $c_i$ contains exactly one $\lambda_C$
+($\lambda_C$) goes to zero.  Also, notice in Equation \ref{c_i} that every $c_i$ contains exactly one $\lambda_C$
 in the numerator which cancels with the $\lambda_C$ in the denominator 
-in front of the summation:
+in front of the summation in Equation \ref{bm-eq}. This leads to the following form 
+for the calculation of the terminal species:
 
 \begin{equation}
 \label{lim_lam}
@@ -171,15 +172,15 @@ at any point in time.
 
 \section{Binary Reformulation of Bateman Equations}
 \label{bin}
-There are two main strategies may be used to construct a version of these 
+There are two main strategies that may be used to construct a version of these 
 equations that is better suited to computation, if not clarity. 
 
 The first strategy is to minimize the number of arithmetic
 operations that must be performed to achieve the same result. 
-This can be done by grouping constants together and pre-calculating a single 
-resultant constant. This saves the 
+This can be done by grouping constants together and pre-calculating the single 
+resulting constant. This saves the 
 computer from having to perform these same arithmetic operations at run time.  
-It is therefore possible to express the Bateman equations as a simple sum of 
+Using these principles it is possible to express the Bateman equations as a simple sum of 
 exponentials, as seen in Equation \ref{N_C_bin}.
 
 \begin{equation}
@@ -197,18 +198,18 @@ k_i = \frac{\gamma}{\lambda_C} \lambda_i c_i
 If $k_i$ are computed at run time then this formulation results in much 
 more computational effort that than the original Bateman equations. This is 
 because the $\gamma/\lambda_C$ term is brought into the top-level summation 
-in Equation \ref{N_C_bin}. Thus increased the number of operations in the 
+in Equation \ref{N_C_bin}. This would increase the number of operations in the 
 sum by $C$ to a total of $4C+1$, up from $3C+1$.
 However, when the $k_i$s  are pre-calculated, 
 the number of arithmetic operations for each term in the sum is a mere 4.
 It is no longer a function of the length of the chain $C$ at all.  This is 
-because the explicitly computing $c_i$ has been completely avoided.
+because explicitly computing $c_i$ has been completely avoided.
 Note that even for the shortest non-stable species, this computation is 
 equivalently expensive as the normal Bateman equations, namely 4 operations.
 Thus even in the worst case, the binary formulation performs just as well.
 
 The second strategy is to note that computers are much better at dealing with 
-powers of 2 then then any other base, even the natural base $e$. Thus the 
+powers of 2 than any other base, even the natural base $e$. Thus the 
 $\mathrm{exp2}(x)$ function, or $2^x$, is faster than the natural exponential 
 function $\exp(x)$, $e^x$.  This is due to the number of floating point
 operations needed to in the implementation of the underlying exponential 
