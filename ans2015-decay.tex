@@ -230,7 +230,8 @@ In [4]: %timeit np.exp2(r)
 \end{lstlisting}
 
 From here, $\mathrm{exp2}(x)$ enables a savings of about 25\% over 
-$\exp(x)$.  Since the core of the Bateman equations are exponentials, 
+$\exp(x)$ (note: this improvement is compiler and machine dependent).
+ Since the core of the Bateman equations are exponentials, 
 such a savings has the ability to reach all portions of a decay calculation.
 Luckily, the decay constant itself provides an intrinsic mechanism to convert 
 from base-e to base-2, as seen in the following equations:
