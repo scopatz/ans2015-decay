@@ -1,11 +1,12 @@
 \documentclass{anstrans}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Binary Formulation of Decay Equations}
-\author{Anthony M. Scopatz,$^{*}$ Paul P. H. Wilson$^{*}$}
+\author{Anthony M. Scopatz$^{*}$, Cameron R. Bates$^{+}$, Paul P. H. Wilson$^{*}$}
 
 \institute{
 $^{*}$The University of Wisconsin-Madison, 1500 Engineering Drive, Madison,
 WI
+$^{+}$The University of California Berkeley, Etcheverry Hall, MC 1730, Berkeley, CA
 }
 
 \email{scopatz@wisc.edu}
@@ -72,13 +73,13 @@ traditional expression.
 This use case is particularly relevant to the study of the nuclear fuel 
 cycle (NFC). While reactors are a critical component of most NFCs, there 
 are many places in the cycle where fresh and used fuel is sitting outside 
-of a core. In these cases, decay alone is needed. Full transumation 
+of a core. In these cases, decay alone is needed. Full transmutation 
 calculations require excessive computational effort when simply trying to 
 model a storage facility. Thus, an efficient decay calculator has the 
 potential to speed up simulation of the entire NFC.
 
-Here, the traditional Bateman decay equations have been reformualted to 
-a expression that is more suited for binary compuation. Coupled with a 
+Here, the traditional Bateman decay equations have been reformulated to 
+a expression that is more suited for binary computation. Coupled with a 
 novel code generation technique, this binary formulation provides 
 dramatic speed increases in a modern computing environment. 
 
@@ -107,7 +108,7 @@ N_C(t) = \frac{N_1(0)}{\lambda_C} \cdot \gamma \cdot \sum_{i=1}^C \lambda_i c_{i
 
 \begin{table}[hbt]
 \label{decay-symbol-meaning}
-\caption{Symbol Meaning in Deacy Equations}
+\caption{Symbol Meaning in Decay Equations}
 \begin{tabular}{|l|l|}
 \hline
 \textbf{Symbol} & \textbf{Meaning} \\
@@ -165,7 +166,7 @@ N_C(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C
 \end{equation}
 
 Thus, Equations \ref{bm-eq}, \ref{N_C}, \& \ref{lim_lam_N_C} together are
-able to compute the concetration of any species under decay 
+able to compute the concentration of any species under decay 
 at any point in time.
 
 \section{Binary Reformulation of Bateman Equations}
@@ -193,13 +194,13 @@ In the above equation, the coefficients $k_i$ are defined as follows:
 k_i = \frac{\gamma}{\lambda_C} \lambda_i c_i
 \end{equation}
 
-If $k_i$ are computed at run time then this formualtion results in much 
+If $k_i$ are computed at run time then this formulation results in much 
 more computational effort that than the original Bateman equations. This is 
 because the $\gamma/\lambda_C$ term is brought into the top-level summation 
 in Equation \ref{N_C_bin}. Thus increased the number of operations in the 
 sum by $C$ to a total of $4C+1$, up from $3C+1$.
-However, when the $k_i$s  are pre-caluclated, 
-the number of artimetic operations for each term in the sum is a mere 4.
+However, when the $k_i$s  are pre-calculated, 
+the number of arithmetic operations for each term in the sum is a mere 4.
 It is no longer a function of the length of the chain $C$ at all.  This is 
 because the explicitly computing $c_i$ has been completely avoided.
 Note that even for the shortest non-stable species, this computation is 
@@ -285,20 +286,20 @@ formulation reduces the number of arithmetic operations to 3 for each term
 in the chain. Furthermore, it completely preserves all physical processes 
 because so assumptions were made aside from the Bateman equations themselves.
 Note that it is not possible to reduce the number of operations further
-without assuming a value for $t$. Thus this reperesentation is the 
+without assuming a value for $t$. Thus this representation is the 
 mathematically fastest formulation of the Bateman equations.
 
 \section{Implementation Specific Approximations}
 \label{approx}
-The method presented in the previous section hase been implemented within
+The method presented in the previous section has been implemented within
 PyNE and Cyclus. However, any given mathematical system of equations
 will encounter implementation-specific choices when turned into 
 associated software. Thus, though the above formulation holds generally for 
 any decay chain, certain approximations have been used in the implementation
-for reasons of perfomance, compile-ability, and computability.
+for reasons of performance, compile-ability, and computability.
 The PyNE implementation generally aims to reduce the number of 
 chains and terms that are calculated when they can be shown to be 
-redundant or insignuficant to the total calculation. In specific, the 
+redundant or insignificant to the total calculation. In specific, the 
 following modeling assumptions have been made:
 
 \begin{enumerate}
@@ -328,20 +329,20 @@ To ensure that this is not the case for the assumptions above,
 a benchmark study was performed \cite{benchmark}. This benchmark compared
 the results of running ORIGEN v2.2 \cite{croff1980origen2} to the results of 
 the binary formulation. This study compares 2781 cases for a wide spread of
-nuclides over 0.01, 0.1, 1.0, 10, 100 times the half-life of the nulcide.
-In the overwhemling majority of cases, the relative errors were found to be 
+nuclides over 0.01, 0.1, 1.0, 10, 100 times the half-life of the nuclide.
+In the overwhelming majority of cases, the relative errors were found to be 
 within acceptable bounds.  For cases that did prove significantly different, 
-it differences could all be traced back to discrepencies in the underling 
+it differences could all be traced back to discrepancies in the underling 
 data. Since the PyNE binary formulation uses more recent ENSDF decay 
 data \cite{bhat1992evaluated} and computes more decay chains than ORIGEN, 
-it is reasonble to assume that these discrepencies are not the fault of the 
+it is reasonable to assume that these discrepancies are not the fault of the 
 binary formulation or the implementation assumptions.
 
-It is also important to mention that these implmentation assumptions 
+It is also important to mention that these implementation assumptions 
 may preclude desired behavior by users. For example, perhaps alpha decay 
 should be considered He-4 production. This would bring the implementation in
 line with the same feature in ORIGEN v2.2. In such a situations, these 
-assumptions should be revisited and the implmentation should be reworked.
+assumptions should be revisited and the implementation should be reworked.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions \& Future Work}
