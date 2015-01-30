@@ -230,8 +230,8 @@ In [4]: %timeit np.exp2(r)
 \end{lstlisting}
 
 From here, $\mathrm{exp2}(x)$ enables a savings of about 25\% over 
-$\exp(x)$ (note: this improvement is compiler and machine dependent).
- Since the core of the Bateman equations are exponentials, 
+$\exp(x)$. Note that this improvement is highly compiler and machine dependent.
+However, since the core of the Bateman equations are exponentials, 
 such a savings has the ability to reach all portions of a decay calculation.
 Luckily, the decay constant itself provides an intrinsic mechanism to convert 
 from base-e to base-2, as seen in the following equations:
@@ -321,8 +321,8 @@ following modeling assumptions have been made:
 \item To prevent other sources of floating point error, a nuclide is 
     determined to be stable when $\lambda_i < 10^{-16}$, rather than when 
     $\lambda_i = 0.0$.
-\item If a chain has any $\mathrm{NaN}$ decay constants, the chain in rejected.
-\item If a chain has any infinite $k$ values, the chain in rejected.
+\item If a chain has any $\mathrm{NaN}$ decay constants, the chain is rejected.
+\item If a chain has any infinite $k$ values, the chain is rejected.
 \end{enumerate}
 
 In principle, each of these statements is reasonable. However, they may 
@@ -330,7 +330,7 @@ have covariant effects that inject unreasonable errors into the system.
 To ensure that this is not the case for the assumptions above, 
 a benchmark study was performed \cite{benchmark}. This benchmark compared
 the results of running ORIGEN v2.2 \cite{croff1980origen2} to the results of 
-the binary formulation. This study compares 2781 cases for a wide spread of
+the binary formulation. This study compared 2781 cases for a wide spread of
 nuclides over 0.01, 0.1, 1.0, 10, 100 times the half-life of the nuclide.
 In the overwhelming majority of cases, the relative errors were found to be 
 within acceptable bounds.  For cases that did prove significantly different, 
@@ -343,7 +343,7 @@ binary formulation or the implementation assumptions.
 It is also important to mention that these implementation assumptions 
 may preclude desired behavior by users. For example, perhaps alpha decay 
 should be considered He-4 production. This would bring the implementation in
-line with the same feature in ORIGEN v2.2. In such a situations, these 
+line with the same feature in ORIGEN v2.2. In such a situation, these 
 assumptions should be revisited and the implementation should be reworked.
 
 \section{Comparison to ORIGEN implementation}
@@ -373,7 +373,7 @@ work demonstrates such an implementation and shows promising initial results
 in comparison to existing tools. It is also unique in that the code requires no
 run time access to nuclear data as it is all integrated into the compilation 
 process. This results in a single portable C++ file with header that can be 
-used in NCF tools for decay calculations. Future work will consist of a more 
+used in NFC tools for decay calculations. Future work will consist of a more 
 detailed benchmark
 comparison against existing tools and work to quantify the errors introduced by
 the approximations used and those due to other effects such as round-off errors. 
