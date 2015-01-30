@@ -5,7 +5,7 @@
 
 \institute{
 $^{*}$The University of Wisconsin-Madison, 1500 Engineering Drive, Madison,
-WI
+WI\\
 $^{+}$The University of California Berkeley, Etcheverry Hall, MC 1730, Berkeley, CA
 }
 
@@ -345,8 +345,37 @@ should be considered He-4 production. This would bring the implementation in
 line with the same feature in ORIGEN v2.2. In such a situations, these 
 assumptions should be revisited and the implementation should be reworked.
 
+\section{Comparison to ORIGEN implementation}
+
+The implementation of decay calculations in ORIGEN follows a fundamentally 
+different strategy from the one described above. It uses Taylor series expansion 
+of the exponential decay to make the problem tractable
+and then uses run-time branches to make a set of further approximations similar
+to those described above. This is due to both the increased scope of the 
+problem being solved, transmutation and decay, as well as the design which
+treats the decay data and the algorithm as two separate entities. The 
+combination of modern computational tools, allowing for efficient generation of 
+code, and the existing PyNE decay data interface, with rapid access to up-to-date ENSDF
+decay data, enable a merging of the two components and a reduction in computational
+cost at run-time with a manageable computation cost at compile (less than 30 seconds on
+a modern laptop). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions \& Future Work}
+
+Many different computational solutions to the Bateman equations have been 
+developed, but few have been focused on optimizing the solution for speed
+of implementation without significant approximation of the initial problem.
+ The ability to have algorithmically 
+generated code makes it possible to generate a solution that is both 
+computationally efficient and that minimizes mathematical approximations. This 
+work demonstrates such an implementation and shows promising initial results
+in comparison to existing tools. It is also unique in that the code requires no
+run time access to nuclear data as it is all integrated into the compilation 
+process. This results in a single portable C++ file with header that can be 
+used in NCF tools for decay calculations. Future work will consist of a more 
+detailed benchmark
+comparison against existing tools and work to quantify the errors introduced by
+the approximations used and those due to other effects such as round-off errors. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\section{Acknowledgments}
