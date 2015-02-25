@@ -62,13 +62,16 @@ $^{+}$The University of California Berkeley, Etcheverry Hall, MC 1730, Berkeley,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-The Bateman equations governing radioactive decay are an important 
-subexpression of generalized transmutation equations. In many cases, it is 
+The Bateman equations \cite{bateman1910solution} governing radioactive decay 
+are an important 
+subexpression of the generalized transmutation equations. In many cases, it is 
 desirable to compute decay on its own, outside of the presence of a neutron 
-or photon field.  In this case radioactive decay is a function solely on 
+or photon field.  In this case, radioactive decay is a function solely 
+dependent on 
 intrinsic physical parameters, namely half-lives. This document recasts the 
 Bateman equations into a form that is better suited for computation than the 
-traditional expression.
+traditional expression, whose naive implementation involves the 
+recomputation of many common terms.
 
 This use case is particularly relevant to the study of the nuclear fuel 
 cycle (NFC). While reactors are a critical component of most NFCs, there 
@@ -163,7 +166,7 @@ for the calculation of the terminal species:
 
 \begin{equation}
 \label{lim_lam_N_C}
-N_C(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C-1} \frac{\lambda_j}{\lambda_j - \lambda_i} \right) e^{-\lambda_i t} \right]
+N_{\lambda_C \to 0}(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C-1} \frac{\lambda_j}{\lambda_j - \lambda_i} \right) e^{-\lambda_i t} \right]
 \end{equation}
 
 Thus, Equations \ref{bm-eq}, \ref{N_C}, \& \ref{lim_lam_N_C} together are
@@ -177,6 +180,9 @@ Bateman equations that is better suited to computation, if not clarity.
 
 The first strategy is to minimize the number of arithmetic
 operations that must be performed to achieve the same result. 
+This is a sub-problem of common sub-expression elimination (CSE) 
+\cite{Cocke:1970:GCS:390013.808480}
+that is implemented in modern optimizing compilers \cite{steven1997advanced}.
 This can be done by grouping constants together and pre-calculating the 
 result as its own derived constant. This saves the 
 computer from having to perform these same arithmetic operations at run time.  
@@ -280,7 +286,7 @@ N_C(t) = N_1(0) \cdot 2^{a_1 t}
 
 \begin{equation}
 \label{nc_brown_shoes}
-N_C(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 2^{a_i t} \right]
+N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 2^{a_i t} \right]
 \end{equation}
 
 With completely precomputed $k$, $a$, and the $\mathrm{exp2}()$ function, this 
@@ -288,7 +294,7 @@ formulation reduces the number of arithmetic operations to 3 for each term
 in the chain. Furthermore, it completely preserves all physical processes 
 because no assumptions were made aside from the Bateman equations themselves.
 Note that it is not possible to reduce the number of operations further
-without assuming a value for $t$. Thus this representation is the 
+without assuming a value for $t$. Thus, this representation is the 
 mathematically fastest formulation of the Bateman equations.
 
 \section{Implementation Specific Approximations}
@@ -307,8 +313,16 @@ following modeling assumptions have been made:
 \begin{enumerate}
 \item Decay chains coming from spontaneous fission are not tallied as they 
     lead to an explosion of the total number of chains while contributing to 
-    extraordinarily rare branches.
-\item Decay alphas are not treated as He-4 production.
+    extraordinarily rare branches. For most species the relative error
+    induced by this approximation is on the order of floating-point precision
+    ($<10^-8$).  Only for relatively few and rare nuclides, such as Cm-250, 
+    is the spontaneous fission branch ratio greater than 5\%.
+\item Decay alphas are not treated as He-4 production.  This can lead to 
+    errors that are less than 2\% of the total mass of all chains for a
+    nuclide.  For example, Pu-239 that is fully decayed into only stable 
+    species would have less than 15\% of the original mass converted into 
+    He-4 via alpha decay.  In realistic systems with much shorter time 
+    horizons, this relative error is much smaller.  
 \item For chains longer than length 2, any 
     term whose half-life is less than $10^{-8}$ of the sum of all 
     half-lives in the chain is dropped. This filtering prevents excessive
@@ -328,13 +342,31 @@ following modeling assumptions have been made:
 In principle, each of these statements is reasonable. However, they may 
 have covariant effects that inject unreasonable errors into the system.
 To ensure that this is not the case for the assumptions above, 
-a benchmark study was performed \cite{benchmark}. This benchmark compared
+a preliminary benchmark study was performed \cite{benchmark}. This benchmark 
+compared
 the results of running ORIGEN v2.2 \cite{croff1980origen2} to the results of 
-the binary formulation. This study compared 2781 cases for a wide spread of
+the binary formulation. This study compared 2811 cases for a wide spread of
 nuclides over 0.01, 0.1, 1.0, 10, 100 times the half-life of the nuclide.
 In the overwhelming majority of cases, the relative errors were found to be 
-within acceptable bounds.  For cases that did prove significantly different, 
-it differences could all be traced back to discrepancies in the underling 
+within acceptable bounds. Take $x$ as the mass of a species in a material 
+after decay in the binary formulation, and $y$ as the mass of the same species
+decayed via ORIGEN, then the relative error $\epsilon$ is computed as:
+\begin{equation}
+\epsilon = \frac{2 \cdot |x - y|}{x + y}
+\end{equation}
+For a given nuclide to pass the decay benchmark here, 
+the species present in the decayed result must meet the following criteria:
+\begin{enumerate}
+    \item The highest relative error of any species in the decay result is
+          less than 1\%, or
+
+    \item If the species has a relative error greater than 1\%, then the 
+          decayed mass of the species multiplied by the relative error
+          (the mass-weighted relative error) is less than 10\%.
+\end{enumerate}
+  
+For cases that did demonstrate significant differences in the benchmark, 
+the differences could all be traced back to discrepancies in the underling 
 data. Since the PyNE binary formulation uses more recent ENSDF decay 
 data \cite{bhat1992evaluated} and computes more decay chains than ORIGEN, 
 it is reasonable to assume that these discrepancies are not the fault of the 
